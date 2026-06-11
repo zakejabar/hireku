@@ -1,5 +1,9 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+const baseHeaders: Record<string, string> = {
+  "ngrok-skip-browser-warning": "true",
+};
+
 export interface Criterion {
   name: string;
   description: string;
@@ -39,7 +43,7 @@ export interface JobStatus {
 export async function generateCriteria(jobDescription: string): Promise<CriteriaOutput> {
   const res = await fetch(`${API_BASE}/criteria/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { ...baseHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({ job_description: jobDescription }),
   });
   if (!res.ok) throw new Error(await res.text());
@@ -50,19 +54,19 @@ export async function uploadCVs(files: File[], criteria: CriteriaOutput): Promis
   const form = new FormData();
   files.forEach((f) => form.append("files", f));
   form.append("criteria", JSON.stringify(criteria));
-  const res = await fetch(`${API_BASE}/screen/upload`, { method: "POST", body: form });
+  const res = await fetch(`${API_BASE}/screen/upload`, { method: "POST", headers: baseHeaders, body: form });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
 export async function getJobStatus(jobId: string): Promise<JobStatus> {
-  const res = await fetch(`${API_BASE}/screen/status/${jobId}`);
+  const res = await fetch(`${API_BASE}/screen/status/${jobId}`, { headers: baseHeaders });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
 export async function getReport(jobId: string): Promise<JobStatus> {
-  const res = await fetch(`${API_BASE}/screen/report/${jobId}`);
+  const res = await fetch(`${API_BASE}/screen/report/${jobId}`, { headers: baseHeaders });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
